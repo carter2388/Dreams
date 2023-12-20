@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    tools {
+        // Define the Maven tool by its configured name in Jenkins
+        maven 'maven' // Replace 'maven' with your configured Maven installation name
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/collinsako/terraform-infra-repo']])
+            }
+        }
+        stage("init") {
+            steps {
+                sh ("terraform init -reconfigure")
+            }
+        }
+        stage("plan") {
+            steps {
+                sh ("terraform plan")
+            }
+        }
+        stage("action") {
+            steps {
+                echo "terraform action is ~> ${action}"
+                sh ("terraform ${action} --auto-approve")
+            }
+        }
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn clean package' // Replace with your Maven build commands
+            }
+        }
+    }
+}
